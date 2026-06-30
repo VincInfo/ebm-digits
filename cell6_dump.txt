@@ -1,0 +1,141 @@
+"""Slide figure: Positive / negative phase — 1D energy curve E(x)."""
+
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+plt.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.size": 15,
+        "axes.labelsize": 17,
+        "axes.titlesize": 18,
+    }
+)
+
+
+def energy_1d(x: np.ndarray) -> np.ndarray:
+    """Smooth 1D energy with two valleys and a central hill."""
+    energy = 0.12 * x**2 + 1.8
+    energy -= 2.4 * np.exp(-((x - 1.35) ** 2) / 0.55)
+    energy -= 1.9 * np.exp(-((x + 1.1) ** 2) / 0.50)
+    energy += 1.5 * np.exp(-((x - 0.1) ** 2) / 0.35)
+    return energy
+
+
+out_dir = Path("../figures")
+out_dir.mkdir(parents=True, exist_ok=True)
+
+x = np.linspace(-2.8, 2.8, 500)
+E_curve = energy_1d(x)
+
+# Real data in a valley; model sample on a hill between valleys.
+x_real, x_model = 1.30, 0.35
+e_real = float(energy_1d(x_real))
+e_model = float(energy_1d(x_model))
+
+fig, ax = plt.subplots(figsize=(7.4, 4.8), dpi=300, facecolor="white")
+ax.plot(x, E_curve, color="#2f4f6f", lw=2.4, zorder=2)
+
+ax.scatter(
+    [x_real],
+    [e_real],
+    s=140,
+    c="#2e7d32",
+    edgecolors="white",
+    linewidths=1.3,
+    zorder=4,
+)
+ax.scatter(
+    [x_model],
+    [e_model],
+    s=140,
+    c="#c0392b",
+    edgecolors="white",
+    linewidths=1.3,
+    zorder=4,
+)
+
+label_box = dict(
+    boxstyle="round,pad=0.32",
+    facecolor="white",
+    edgecolor="0.82",
+    alpha=0.97,
+    linewidth=0.8,
+)
+label_fs = 14
+
+ax.annotate(
+    "Real data",
+    xy=(x_real -1, e_real - 5),
+    xytext=(x_real + 0.75, e_real + 1.1),
+    fontsize=label_fs,
+    color="#2e7d32",
+    fontweight="bold",
+    ha="center",
+    arrowprops=dict(arrowstyle="->", color="#2e7d32", lw=1.3),
+    bbox=label_box,
+)
+ax.annotate(
+    "",
+    xy=(x_real, e_real - 0.35),
+    xytext=(x_real, e_real - 0.02),
+    arrowprops=dict(arrowstyle="-|>", color="#2e7d32", lw=2.0, mutation_scale=13),
+)
+ax.text(
+    x_real + 0.42,
+    e_real - 0.18,
+    r"Lower $E(x_{\mathrm{real}})$",
+    fontsize=label_fs,
+    color="#2e7d32",
+    ha="left",
+)
+
+ax.annotate(
+    "Model sample",
+    xy=(x_model, e_model - 5),
+    xytext=(x_model - 1.35, e_model),
+    fontsize=label_fs,
+    color="#c0392b",
+    fontweight="bold",
+    ha="center",
+    arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.3),
+    bbox=label_box,
+)
+ax.annotate(
+    "",
+    xy=(x_model, e_model + 0.55),
+    xytext=(x_model, e_model + 0.03),
+    arrowprops=dict(arrowstyle="-|>", color="#c0392b", lw=2.0, mutation_scale=13),
+)
+ax.text(
+    x_model - 0.95,
+    e_model + 0.30,
+    r"Raise $E(x_{\mathrm{model}})$",
+    fontsize=label_fs,
+    color="#c0392b",
+    ha="right",
+)
+
+ax.set_xlabel("Data $x$")
+ax.set_ylabel("Energy $E(x)$")
+ax.set_title("Training shapes the energy landscape", pad=10, fontweight="bold", color="0.25")
+ax.set_xlim(-2.8, 2.8)
+ax.set_ylim(E_curve.min() - 0.15, E_curve.max() + 0.35)
+ax.grid(axis="y", color="0.92", linewidth=0.8)
+
+for spine in ax.spines.values():
+    spine.set_color("0.75")
+ax.tick_params(labelsize=13, colors="0.3")
+
+fig.subplots_adjust(left=0.11, right=0.97, top=0.90, bottom=0.14)
+
+png_path = out_dir / "positive_negative_phase_1d.png"
+pdf_path = out_dir / "positive_negative_phase_1d.pdf"
+fig.savefig(png_path, dpi=300, facecolor="white", bbox_inches="tight", pad_inches=0.05)
+fig.savefig(pdf_path, facecolor="white", bbox_inches="tight", pad_inches=0.05)
+plt.show()
+
+print(f"Saved {png_path.resolve()}")
+print(f"Saved {pdf_path.resolve()}")
